@@ -33,9 +33,16 @@ wheels/
 .installed.cfg
 *.egg
 
-# Heavy data files
+# Large data files and archives
 *.csv
 *.log
+*.zip
+*.gz
+*.tar
+*.tar.gz
+*.bz2
+*.7z
+*.rar
 logs/
 data/
 shapefiles/
@@ -44,6 +51,8 @@ sunscore_data.csv
 uszips.csv
 raw_solar_data.csv
 solar_data_structured.csv
+tl_2023_us_zcta520.zip
+tl_*.zip
 
 # Environment variables
 .env

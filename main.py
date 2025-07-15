@@ -42,14 +42,22 @@ def main():
         for i, (lat, lon) in enumerate(latlon_list):
             print(f"[🌞] Trying {zip_code} @{lat:.6f}, {lon:.6f} ({i+1}/{len(latlon_list)})...")
 
-            success, ghi, dni, dhi = get_solar_data(lat, lon, YEAR, EMAIL, API_KEY)
+            try:
+                success, ghi, dni, dhi = get_solar_data(lat, lon, YEAR, EMAIL, API_KEY)
 
-            if success:
-                save_solar_record(lat, lon, ghi, dni, dhi, year=YEAR)
-                print(f"✅ Saved data for ZIP {zip_code} point #{i+1}")
-                break
-            else:
-                print(f"❌ Failed to get data for ZIP {zip_code} point #{i+1} @({lat:.6f},{lon:.6f})")
+                if success:
+                    save_solar_record(lat, lon, ghi, dni, dhi, year=YEAR)
+                    print(f"✅ Saved data for ZIP {zip_code} point #{i+1}")
+                    break
+                else:
+                    print(f"❌ Failed to get data for ZIP {zip_code} point #{i+1} @({lat:.6f},{lon:.6f})")
+                    
+                # Rate limiting to avoid API throttling
+                time.sleep(1)
+                
+            except Exception as e:
+                print(f"⚠️ Error processing ZIP {zip_code} point #{i+1}: {e}")
+                continue
 
         if not success:
             print(f"[❌] All points failed for ZIP {zip_code}. No data saved.")
