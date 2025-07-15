@@ -12,9 +12,10 @@ logger = logging.getLogger(__name__)
 
 class SolarDB:
     def __init__(self):
-        self.mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-        self.database_name = os.getenv("DATABASE", "SunscoreData")
-        self.collection_name = os.getenv("COLLECTION", "SolarData")
+        # Hardcoded MongoDB connection details
+        self.mongo_uri = "mongodb+srv://dataxheimat:RxKjoqvpz2yUoU92@data.fq8ofzs.mongodb.net/?retryWrites=true&w=majority&appName=Data"
+        self.database_name = "ScrapedData"
+        self.collection_name = "SunScore"
         self.client = None
         self.db = None
         self.collection = None
@@ -33,7 +34,7 @@ class SolarDB:
     
     def save_record(self, lat: float, lon: float, ghi: float, dni: float, dhi: float, year: str):
         """Save solar data record to MongoDB."""
-        if not self.collection:
+        if self.collection is None:
             if not self.connect():
                 return False
         

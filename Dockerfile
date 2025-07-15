@@ -9,27 +9,30 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Create non-root user first
+# Create non-root user
 RUN useradd -m -u 1000 appuser
 
-# Copy requirements first for better caching
+# Copy requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy only necessary source files (exclude large data files)
+# Copy source files
 COPY *.py ./
 COPY README.md ./
 
-# Create necessary directories with proper permissions
-RUN mkdir -p ./data ./logs && \
-    chown -R appuser:appuser /app
+# Copy actual CSV and shapefiles (no fallbacks)
+COPY uszips.csv ./uszips.csv
+COPY shapefiles/ ./shapefiles/
+
+# Set ownership
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
 
-# Set environment variables
-ENV RUN_ENV=docker
+# Set required env variables
 ENV PYTHONUNBUFFERED=1
+ENV ZIP_DATA_FILE=uszips.csv
+ENV RUN_ENV=docker
 
-# Run the application
 CMD ["python", "main.py"]

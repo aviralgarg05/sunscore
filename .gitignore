@@ -27,22 +27,25 @@ wheels/
 .env
 !.env.example
 
-# Data files (except sample data)
-uszips.csv
-*.log
+# Large generated data files (keep source datasets)
+!uszips.csv
+!sample_zips.csv
+# Large data files - explicitly exclude shapefiles directory
+/shapefiles/
+shapefiles/*
+!shapefiles/.keep
 logs/
-data/
-shapefiles/
+data/output/
 sunscore_data.csv
 sunscore_failures.log
 solar_data_all_zips_*.csv
+*.log
 
 # IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
-
 # OS generated files
 .DS_Store
 .DS_Store?

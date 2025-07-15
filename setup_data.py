@@ -12,7 +12,7 @@ from pathlib import Path
 def check_required_files():
     """Check if required data files exist."""
     required_files = {
-        'uszips.csv': 'ZIP codes database with lat/lng coordinates',
+        'sample_zips.csv': 'ZIP codes database with lat/lng coordinates (sample)',
         'tl_2023_us_zcta520.zip': 'US Census ZCTA shapefile (optional for grid generation)'
     }
     
@@ -28,32 +28,28 @@ def check_required_files():
     return len(missing_files) == 0
 
 def create_sample_zip_data():
-    """Create a small sample ZIP codes file for testing."""
+    """Create a sample ZIP code data file for testing."""
+    print("📝 Creating sample ZIP code data...")
+    
+    sample_file = 'sample_zips.csv'
     sample_data = [
-        {"zip": "10001", "lat": 40.7505, "lng": -73.9934, "city": "New York", "state_id": "NY"},
-        {"zip": "90210", "lat": 34.0901, "lng": -118.4065, "city": "Beverly Hills", "state_id": "CA"},
-        {"zip": "60601", "lat": 41.8781, "lng": -87.6298, "city": "Chicago", "state_id": "IL"},
-        {"zip": "33101", "lat": 25.7617, "lng": -80.1918, "city": "Miami", "state_id": "FL"},
-        {"zip": "94102", "lat": 37.7749, "lng": -122.4194, "city": "San Francisco", "state_id": "CA"},
-        {"zip": "02101", "lat": 42.3601, "lng": -71.0589, "city": "Boston", "state_id": "MA"},
-        {"zip": "98101", "lat": 47.6062, "lng": -122.3321, "city": "Seattle", "state_id": "WA"},
-        {"zip": "78701", "lat": 30.2672, "lng": -97.7431, "city": "Austin", "state_id": "TX"},
-        {"zip": "30301", "lat": 33.7490, "lng": -84.3880, "city": "Atlanta", "state_id": "GA"},
-        {"zip": "80202", "lat": 39.7392, "lng": -104.9903, "city": "Denver", "state_id": "CO"}
+        ["zip", "lat", "lng", "city", "state_id", "state_name", "county_fips", "county_name", "timezone"],
+        ["90210", "34.0901", "-118.4065", "Beverly Hills", "CA", "California", "06037", "Los Angeles", "America/Los_Angeles"],
+        ["10001", "40.7501", "-73.9964", "New York", "NY", "New York", "36061", "New York", "America/New_York"],
+        ["60601", "41.8855", "-87.6214", "Chicago", "IL", "Illinois", "17031", "Cook", "America/Chicago"],
+        ["98101", "47.6097", "-122.3331", "Seattle", "WA", "Washington", "53033", "King", "America/Los_Angeles"],
+        ["33139", "25.7820", "-80.1341", "Miami Beach", "FL", "Florida", "12086", "Miami-Dade", "America/New_York"]
     ]
     
-    # Create the expected filename from environment or default
-    filename = os.getenv("ZIP_DATA_FILE", "uszips.csv")
-    
-    with open(filename, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=["zip", "lat", "lng", "city", "state_id"])
-        writer.writeheader()
-        writer.writerows(sample_data)
-    
-    print(f"✅ Created sample ZIP data: {filename}")
-    print("📝 For production, download complete ZIP codes database from:")
-    print("   https://simplemaps.com/data/us-zips")
-    return True
+    try:
+        with open(sample_file, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(sample_data)
+        print(f"✅ Created {sample_file} with {len(sample_data)-1} sample ZIP codes")
+        return True
+    except Exception as e:
+        print(f"❌ Error creating sample data: {e}")
+        return False
 
 def main():
     print("🔧 SunScore Data Setup Utility")

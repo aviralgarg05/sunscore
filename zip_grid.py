@@ -24,36 +24,41 @@ def get_zip_latlon_grid(shapefile_path: str = './shapefiles/tl_2023_us_zcta520.s
     zip_grid = {}
     
     # Try to load from the ZIP data file
-    zip_file = os.getenv("ZIP_DATA_FILE", "uszips.csv")
+    zip_file = os.getenv("ZIP_DATA_FILE", "sample_zips.csv")
     
     if not os.path.exists(zip_file):
         print(f"⚠️  ZIP data file {zip_file} not found")
-        return {}
+        # Try alternate file
+        alternate_file = "sample_zips.csv" if zip_file != "sample_zips.csv" else "uszips.csv"
+        if os.path.exists(alternate_file):
+            print(f"🔄 Using alternate ZIP data file {alternate_file}")
+            zip_file = alternate_file
+        else:
+            print("❌ No ZIP data file available")
+            return {}
     
     try:
+        # Load shapefile
+        gdf = gpd.read_file(shapefile_path)
+        gdf['ZCTA5CE20'] = gdf['ZCTA5CE20'].astype(str).str.zfill(5)
+        gdf = gdf.set_index('ZCTA5CE20')
+        
         with open(zip_file, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 zip_code = str(row['zip']).zfill(5)
-                lat = float(row['lat'])
-                lng = float(row['lng'])
                 
-                # Create a simple grid around the ZIP code center
-                # For now, we'll just use the center point
-                zip_grid[zip_code] = [(lat, lng)]
+                # Check if the ZIP code exists in the shapefile
+                if zip_code in gdf.index:
+                    polygon = gdf.loc[zip_code]['geometry']
+                    points = generate_grid_from_polygon(polygon, n_points)
+                    zip_grid[zip_code] = points
+                else:
+                    print(f"⚠️  ZIP code {zip_code} not found in shapefile")
+                    continue
                 
     except Exception as e:
         print(f"❌ Error loading ZIP grid data: {e}")
         return {}
     
     return zip_grid
-
-def create_sample_zip_grid() -> Dict[str, List[Tuple[float, float]]]:
-    """Create sample ZIP grid data for testing."""
-    return {
-        "10001": [(40.7505, -73.9934)],  # NYC
-        "90210": [(34.0901, -118.4065)], # Beverly Hills
-        "60601": [(41.8781, -87.6298)],  # Chicago
-        "33101": [(25.7617, -80.1918)],  # Miami
-        "94102": [(37.7749, -122.4194)]  # San Francisco
-    }

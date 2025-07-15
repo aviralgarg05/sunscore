@@ -11,7 +11,7 @@ load_dotenv()
 API_KEY = os.getenv("NSRDB_API_KEY")
 EMAIL = os.getenv("NSRDB_EMAIL")
 YEAR = os.getenv("NSRDB_YEAR", "2024")
-ZIP_DATA_FILE = os.getenv("ZIP_DATA_FILE", "uszips.csv")
+ZIP_DATA_FILE = os.getenv("ZIP_DATA_FILE", "sample_zips.csv")
 
 print(f"🔑 API Key present: {'Yes' if API_KEY else 'No'}")
 print(f"📧 Email present: {'Yes' if EMAIL else 'No'}")
