@@ -1,8 +1,21 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production builds
+build/
+dist/
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+venv/
+env/
+ENV/
 .Python
 build/
 develop-eggs/
@@ -16,37 +29,29 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
-# Virtual environments
+# Data files
+*.csv
+*.log
+logs/
+
+# Environment variables
 .env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# IDE
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Data files
-*.csv
-*.log
-uszips.csv
-sunscore_data.csv
-sunscore_failures.log
-logs.csv
-
-# OS
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -54,3 +59,37 @@ logs.csv
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Git
+.git/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity

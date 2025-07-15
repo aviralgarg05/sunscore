@@ -1,27 +1,23 @@
 import csv
+from typing import List, Dict
 
-def load_usa_zip_list(filepath):
-    """
-    Load ZIP code data from a CSV with at least the following columns:
-    - zip
-    - lat
-    - lng
-    - state_id
-    - city
-    """
-    zip_list = []
-    with open(filepath, newline="", encoding="utf-8") as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            # Clean + cast
-            try:
-                zip_list.append({
-                    "zip": row["zip"].zfill(5),
-                    "lat": float(row["lat"]),
-                    "lng": float(row["lng"]),
-                    "state_id": row["state_id"],
-                    "city": row["city"]
+def load_usa_zip_list(filename: str) -> List[Dict]:
+    """Load USA ZIP codes from CSV file."""
+    zip_data = []
+    
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                zip_data.append({
+                    'zip': row['zip'],
+                    'lat': float(row['lat']),
+                    'lng': float(row['lng']),
+                    'state_id': row['state_id'],
+                    'city': row['city']
                 })
-            except Exception as e:
-                print(f"[⚠️] Skipping row due to error: {e}")
-    return zip_list
+    except FileNotFoundError:
+        print(f"Warning: {filename} not found. Please ensure the ZIP codes file exists.")
+        return []
+    
+    return zip_data
