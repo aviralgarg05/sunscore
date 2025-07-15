@@ -1,13 +1,3 @@
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Production builds
-build/
-dist/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -33,39 +23,19 @@ wheels/
 .installed.cfg
 *.egg
 
-# Large data files and archives
-*.csv
+# Environment variables (keep .env.example)
+.env
+!.env.example
+
+# Data files (except sample data)
+uszips.csv
 *.log
-*.zip
-*.gz
-*.tar
-*.tar.gz
-*.bz2
-*.7z
-*.rar
 logs/
 data/
 shapefiles/
-solar_data_all_zips_*.csv
 sunscore_data.csv
-uszips.csv
-raw_solar_data.csv
-solar_data_structured.csv
-
-# Specifically exclude large shapefile
-tl_2023_us_zcta520.zip
-tl_*.zip
-tl_*.shp
-tl_*.dbf
-tl_*.shx
-tl_*.prj
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+sunscore_failures.log
+solar_data_all_zips_*.csv
 
 # IDE files
 .vscode/
@@ -81,6 +51,9 @@ tl_*.prj
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Docker
+.dockerignore
 
 # Temporary files
 *.tmp

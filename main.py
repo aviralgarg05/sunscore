@@ -11,9 +11,20 @@ load_dotenv()
 API_KEY = os.getenv("NSRDB_API_KEY")
 EMAIL = os.getenv("NSRDB_EMAIL")
 YEAR = os.getenv("NSRDB_YEAR", "2024")
-ZIP_DATA_FILE = os.getenv("ZIP_DATA_FILE", "zip_codes.csv")
+ZIP_DATA_FILE = os.getenv("ZIP_DATA_FILE", "uszips.csv")
+
+print(f"🔑 API Key present: {'Yes' if API_KEY else 'No'}")
+print(f"📧 Email present: {'Yes' if EMAIL else 'No'}")
+print(f"📅 Year: {YEAR}")
+print(f"📁 ZIP file: {ZIP_DATA_FILE}")
 
 if not API_KEY or not EMAIL:
+    print("❌ Missing required environment variables:")
+    if not API_KEY:
+        print("  - NSRDB_API_KEY is not set")
+    if not EMAIL:
+        print("  - NSRDB_EMAIL is not set")
+    print("📝 Please set these in your .env file")
     raise ValueError("NSRDB_API_KEY and NSRDB_EMAIL must be set in .env file")
 
 UNSUPPORTED_STATES = {"PR", "VI", "GU", "AS", "MP"}  # Territories NSRDB doesn't support
@@ -21,7 +32,19 @@ UNSUPPORTED_STATES = {"PR", "VI", "GU", "AS", "MP"}  # Territories NSRDB doesn't
 def main():
     print("[⚙️] Starting Sunscore Data Scraper...")
 
+    # Check if ZIP data file exists
+    if not os.path.exists(ZIP_DATA_FILE):
+        print(f"❌ ZIP data file not found: {ZIP_DATA_FILE}")
+        print("💡 Please ensure the ZIP codes file exists or create sample data using setup_data.py")
+        return
+
     zip_data = load_usa_zip_list(ZIP_DATA_FILE)
+    if not zip_data:
+        print("❌ No ZIP data loaded. Please check your ZIP codes file.")
+        return
+
+    print(f"📊 Loaded {len(zip_data)} ZIP codes")
+
     zip_grid = get_zip_latlon_grid()
 
     for zip_row in zip_data:
