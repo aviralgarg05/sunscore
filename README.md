@@ -1,76 +1,120 @@
 # SunScore - Solar Irradiance Data Collector
 
-A Python application that collects solar irradiance data from the NREL NSRDB API for US ZIP codes.
+A comprehensive Python application for collecting and processing solar irradiance data from the NREL NSRDB API for US ZIP codes.
 
 ## Features
 
-- Fetches solar irradiance data (GHI, DNI, DHI) for US ZIP codes
-- Processes and stores data in CSV format
-- Handles API rate limiting and retries
-- Docker support for containerized deployment
-- Comprehensive error logging
+- **Multi-source Data Collection**: Fetches solar irradiance data (GHI, DNI, DHI) using ZIP codes or geographic grids
+- **Intelligent Grid Sampling**: Generates random points within ZIP code polygons for comprehensive coverage
+- **Data Processing Pipeline**: Converts raw solar data to structured CSV format with timestamps
+- **Error Handling**: Robust retry logic and unsupported region detection
+- **Flexible Configuration**: Environment-based configuration for different deployment scenarios
+
+## Project Structure
+
+```
+sunscore/
+├── main.py                              # Main application entry point
+├── config.py                            # Configuration management
+├── zip_loader.py                        # ZIP code data loading utilities
+├── zip_grid.py                          # Geographic grid generation
+├── nsrdb.py                             # NREL NSRDB API client
+├── solar_db.py                          # Solar data storage utilities
+├── convert_raw_to_structured_csv.py     # Data conversion utilities
+├── requirements.txt                     # Python dependencies
+└── README.md                            # Project documentation
+```
 
 ## Prerequisites
 
-- Python 3.10+
+- Python 3.8+
 - NREL NSRDB API key (free registration at [developer.nrel.gov](https://developer.nrel.gov))
-- US ZIP codes CSV file with columns: zip, lat, lng, state_id, city
+- ZIP codes CSV file or shapefile data for geographic boundaries
 
-## Setup
+## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/sunscore.git
+git clone https://github.com/aviralgarg05/sunscore.git
 cd sunscore
 ```
 
-2. Install dependencies:
+2. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set environment variables:
+4. Create environment configuration:
 ```bash
-export NSRDB_API_KEY="your_api_key_here"
-export USER_EMAIL="your_email@example.com"
-export YEAR="2024"
-```
-
-4. Place your ZIP codes CSV file as `uszips.csv` in the project root.
-
-## Usage
-
-### Local Development
-```bash
-python main.py
-```
-
-### Docker
-```bash
-# Build the image
-docker build -t sunscore .
-
-# Run with environment variables
-docker run -e NSRDB_API_KEY="your_key" -e USER_EMAIL="your_email" sunscore
+cp .env.example .env
+# Edit .env with your API credentials
 ```
 
 ## Configuration
 
-Environment variables:
-- `NSRDB_API_KEY`: Your NREL NSRDB API key
-- `USER_EMAIL`: Your email address for API requests
-- `YEAR`: Data year to fetch (default: 2017)
-- `ATTRIBUTES`: Solar attributes to fetch (default: ghi,dni,dhi)
+Create a `.env` file with the following variables:
 
-## Output
+```env
+NSRDB_API_KEY=your_nrel_api_key_here
+NSRDB_EMAIL=your_email@example.com
+NSRDB_YEAR=2024
+ZIP_DATA_FILE=zip_codes.csv
+```
 
-- `sunscore_data.csv`: Main output file with solar data
-- `sunscore_failures.log`: Log of failed ZIP code requests
+## Usage
+
+### Basic Data Collection
+```bash
+python main.py
+```
+
+### Data Format Conversion
+```bash
+python convert_raw_to_structured_csv.py
+```
 
 ## API Rate Limits
 
-The application respects NREL API rate limits with 1-second delays between requests and automatic retry logic.
+The application respects NREL API rate limits with:
+- 1-second delays between requests
+- Automatic retry logic (3 attempts)
+- Graceful handling of 403 Forbidden responses
+
+## Output Files
+
+- `solar_data.csv`: Main structured output with timestamp data
+- `raw_solar_data.csv`: Raw API responses
+- `solar_data_structured.csv`: Processed data with timestamps
+
+## Supported Regions
+
+The application automatically excludes unsupported US territories:
+- Puerto Rico (PR)
+- US Virgin Islands (VI)
+- Guam (GU)
+- American Samoa (AS)
+- Northern Mariana Islands (MP)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## License
 
-MIT License
+MIT License - see LICENSE file for details
+
+## Support
+
+For issues and questions:
+- Create an issue on GitHub
+- Check NREL NSRDB documentation for API-related questions

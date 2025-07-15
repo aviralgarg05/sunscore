@@ -1,61 +1,58 @@
-import csv
 import os
 import time
-import requests
-from utils import parse_solar_csv, save_to_csv, log_failure
+from dotenv import load_dotenv
+from zip_grid import get_zip_latlon_grid
+from nsrdb import get_solar_data
+from solar_db import save_solar_record
 from zip_loader import load_usa_zip_list
-from config import API_KEY, EMAIL, YEAR
 
-DATA_YEAR = YEAR
-OUTPUT_CSV = "sunscore_data.csv"
-FAIL_LOG = "sunscore_failures.log"
+load_dotenv()
 
-zip_data = load_usa_zip_list("uszips.csv")
+API_KEY = os.getenv("NSRDB_API_KEY")
+EMAIL = os.getenv("NSRDB_EMAIL")
+YEAR = os.getenv("NSRDB_YEAR", "2024")
+ZIP_DATA_FILE = os.getenv("ZIP_DATA_FILE", "zip_codes.csv")
 
-# Setup output file once
-if not os.path.exists(OUTPUT_CSV):
-    with open(OUTPUT_CSV, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([
-            "ZIP", "City", "State", "Latitude", "Longitude",
-            "Year", "Month", "Day", "Hour", "Minute", "GHI", "DNI", "DHI"
-        ])
+if not API_KEY or not EMAIL:
+    raise ValueError("NSRDB_API_KEY and NSRDB_EMAIL must be set in .env file")
 
-for i, entry in enumerate(zip_data[:5000]):
-    zip_code = str(entry["zip"]).zfill(5)
-    lat = round(entry["lat"], 5)
-    lon = round(entry["lng"], 5)
-    state = entry["state_id"]
-    city = entry["city"]
+UNSUPPORTED_STATES = {"PR", "VI", "GU", "AS", "MP"}  # Territories NSRDB doesn't support
 
-    print(f"[🌞] Request {i+1}/5000 for ZIP {zip_code} ({lat}, {lon})...")
+def main():
+    print("[⚙️] Starting Sunscore Data Scraper...")
 
-    url = (
-        f"https://developer.nrel.gov/api/nsrdb/v2/solar/nsrdb-GOES-aggregated-v4-0-0-download.csv?"
-        f"wkt=POINT({lon}%20{lat})"
-        f"&attributes=ghi,dni,dhi"
-        f"&names={DATA_YEAR}"
-        f"&utc=false&leap_day=true"
-        f"&email={EMAIL}"
-        f"&api_key={API_KEY}"
-    )
+    zip_data = load_usa_zip_list(ZIP_DATA_FILE)
+    zip_grid = get_zip_latlon_grid()
 
-    success = False
-    for retry in range(3):
-        try:
-            response = requests.get(url, timeout=15)
-            response.raise_for_status()
-            data = parse_solar_csv(response.text, zip_code, lat, lon, city, state)
-            save_to_csv(OUTPUT_CSV, data)
-            print(f"✅ [ZIP {zip_code}] Saved {len(data)} rows")
-            success = True
-            break
-        except Exception as e:
-            print(f"🔁 Retry {retry+1} for ZIP {zip_code}...")
-            time.sleep(2)
+    for zip_row in zip_data:
+        zip_code = str(zip_row['zip']).zfill(5)
+        state = zip_row['state_id']
 
-    if not success:
-        print(f"❌ [ZIP {zip_code}] Failed.")
-        log_failure(FAIL_LOG, zip_code, lat, lon, state, city)
+        if state in UNSUPPORTED_STATES:
+            print(f"⏭️ Skipping unsupported region ZIP {zip_code} ({state})")
+            continue
 
-    time.sleep(1)  # ✅ Rate limit: 1 req/sec
+        if zip_code not in zip_grid:
+            print(f"[⚠️] Skipping {zip_code} — no polygon/grid data available")
+            continue
+
+        latlon_list = zip_grid[zip_code]
+        success = False
+
+        for i, (lat, lon) in enumerate(latlon_list):
+            print(f"[🌞] Trying {zip_code} @{lat:.6f}, {lon:.6f} ({i+1}/{len(latlon_list)})...")
+
+            success, ghi, dni, dhi = get_solar_data(lat, lon, YEAR, EMAIL, API_KEY)
+
+            if success:
+                save_solar_record(lat, lon, ghi, dni, dhi, year=YEAR)
+                print(f"✅ Saved data for ZIP {zip_code} point #{i+1}")
+                break
+            else:
+                print(f"❌ Failed to get data for ZIP {zip_code} point #{i+1} @({lat:.6f},{lon:.6f})")
+
+        if not success:
+            print(f"[❌] All points failed for ZIP {zip_code}. No data saved.")
+
+if __name__ == "__main__":
+    main()

@@ -1,13 +1,17 @@
+# config.py
+
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_KEY = os.getenv("NSRDB_API_KEY")
-EMAIL = os.getenv("USER_EMAIL")
-BASE_URL = "https://developer.nrel.gov/api/nsrdb/v2/solar/nsrdb-GOES-aggregated-v4-0-0-download.csv"
-YEAR = os.getenv("YEAR", "2017")
-ATTRIBUTES = os.getenv("ATTRIBUTES", "ghi,dni,dhi")
+EMAIL = os.getenv("NSRDB_EMAIL")
+YEAR = os.getenv("NSRDB_YEAR", "2024")
+ZIP_DATA_FILE = os.getenv("ZIP_DATA_FILE", "zip_codes.csv")
 
-# Validation
 if not API_KEY:
     raise ValueError("NSRDB_API_KEY environment variable is required")
+
 if not EMAIL:
-    raise ValueError("USER_EMAIL environment variable is required")
+    raise ValueError("NSRDB_EMAIL environment variable is required")

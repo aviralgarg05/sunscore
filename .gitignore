@@ -33,10 +33,17 @@ wheels/
 .installed.cfg
 *.egg
 
-# Data files
+# Heavy data files
 *.csv
 *.log
 logs/
+data/
+shapefiles/
+solar_data_all_zips_*.csv
+sunscore_data.csv
+uszips.csv
+raw_solar_data.csv
+solar_data_structured.csv
 
 # Environment variables
 .env
@@ -59,9 +66,6 @@ logs/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Git
-.git/
 
 # Temporary files
 *.tmp
