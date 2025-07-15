@@ -51,8 +51,14 @@ sunscore_data.csv
 uszips.csv
 raw_solar_data.csv
 solar_data_structured.csv
+
+# Specifically exclude large shapefile
 tl_2023_us_zcta520.zip
 tl_*.zip
+tl_*.shp
+tl_*.dbf
+tl_*.shx
+tl_*.prj
 
 # Environment variables
 .env
@@ -80,29 +86,5 @@ Thumbs.db
 *.tmp
 *.temp
 
-# Coverage directory used by tools like istanbul
-coverage/
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
+# Git LFS pointer files (if using LFS)
+*.lfs
