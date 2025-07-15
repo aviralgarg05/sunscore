@@ -40,7 +40,7 @@ sunscore_data.csv
 sunscore_failures.log
 solar_data_all_zips_*.csv
 *.log
-
+*.csv
 # IDE files
 .vscode/
 .idea/

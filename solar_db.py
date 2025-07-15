@@ -1,90 +1,83 @@
-import csv
 import os
-from datetime import datetime, timedelta
+import csv
+import uuid
+from datetime import datetime
 from pymongo import MongoClient
-import logging
+from dotenv import load_dotenv
 
-OUTPUT_PATH = './data/solar_data.csv'
+load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+MONGO_URI = os.getenv("MONGO_URI")
 
-class SolarDB:
-    def __init__(self):
-        # Hardcoded MongoDB connection details
-        self.mongo_uri = "mongodb+srv://dataxheimat:RxKjoqvpz2yUoU92@data.fq8ofzs.mongodb.net/?retryWrites=true&w=majority&appName=Data"
-        self.database_name = "ScrapedData"
-        self.collection_name = "SunScore"
-        self.client = None
-        self.db = None
-        self.collection = None
-        
-    def connect(self):
-        """Connect to MongoDB."""
+def save_solar_record(zip_code, lat, lon, records, year=None, in_docker=False):
+    """
+    Save solar irradiance records to MongoDB and/or CSV.
+    """
+
+    # Optional MongoDB upload
+    if MONGO_URI:
         try:
-            self.client = MongoClient(self.mongo_uri)
-            self.db = self.client[self.database_name]
-            self.collection = self.db[self.collection_name]
-            logger.info(f"✅ Connected to MongoDB: {self.database_name}.{self.collection_name}")
-            return True
+            client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=10000)
+            db = client.sunscore
+            collection = db.solar_data
+
+            docs = []
+            for rec in records:
+                timestamp = datetime(rec["year"], rec["month"], rec["day"], rec["hour"], rec["minute"])
+                doc = {
+                    "_id": str(uuid.uuid4()),
+                    "zip_code": zip_code,
+                    "latitude": lat,
+                    "longitude": lon,
+                    "timestamp": timestamp,
+                    "ghi": rec["ghi"],
+                    "dni": rec["dni"],
+                    "dhi": rec["dhi"],
+                    "source": "NSRDB"
+                }
+                docs.append(doc)
+
+            if docs:
+                collection.insert_many(docs)
+                print(f"[🗃️] Inserted {len(docs)} records to MongoDB for ZIP {zip_code}")
+
         except Exception as e:
-            logger.error(f"❌ Failed to connect to MongoDB: {e}")
-            return False
-    
-    def save_record(self, lat: float, lon: float, ghi: float, dni: float, dhi: float, year: str):
-        """Save solar data record to MongoDB."""
-        if self.collection is None:
-            if not self.connect():
-                return False
-        
-        record = {
-            "latitude": lat,
-            "longitude": lon,
-            "ghi": ghi,
-            "dni": dni,
-            "dhi": dhi,
-            "year": year,
-            "timestamp": datetime.utcnow(),
-            "location": {
-                "type": "Point",
-                "coordinates": [lon, lat]
-            }
-        }
-        
+            print(f"[❌] MongoDB error: {e}")
+    else:
+        print("[⚠️] No MONGO_URI configured. Skipping MongoDB upload.")
+
+    # Save to CSV outside Docker
+    if not in_docker:
+        csv_path = "solar_data.csv"
+        file_exists = os.path.exists(csv_path)
+        fieldnames = [
+            "zip_code", "latitude", "longitude",
+            "year", "month", "day", "hour", "minute",
+            "ghi", "dni", "dhi"
+        ]
+
         try:
-            result = self.collection.insert_one(record)
-            logger.info(f"✅ Saved record with ID: {result.inserted_id}")
-            return True
+            with open(csv_path, mode="a", newline="") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                if not file_exists:
+                    writer.writeheader()
+
+                for rec in records:
+                    writer.writerow({
+                        "zip_code": zip_code,
+                        "latitude": lat,
+                        "longitude": lon,
+                        "year": rec["year"],
+                        "month": rec["month"],
+                        "day": rec["day"],
+                        "hour": rec["hour"],
+                        "minute": rec["minute"],
+                        "ghi": rec["ghi"],
+                        "dni": rec["dni"],
+                        "dhi": rec["dhi"]
+                    })
+
+            print(f"[📄] Wrote {len(records)} rows to CSV for ZIP {zip_code}")
+
         except Exception as e:
-            logger.error(f"❌ Failed to save record: {e}")
-            return False
-    
-    def close(self):
-        """Close MongoDB connection."""
-        if self.client:
-            self.client.close()
-
-# Global instance
-_solar_db = SolarDB()
-
-def save_solar_record(lat: float, lon: float, ghi: float, dni: float, dhi: float, year: str = "2024"):
-    """Save solar data record to database."""
-    return _solar_db.save_record(lat, lon, ghi, dni, dhi, year)
-
-def close_db():
-    """Close database connection."""
-    _solar_db.close()
-
-def _save_to_csv(records):
-    """Helper function to save records to CSV"""
-    os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
-    file_exists = os.path.exists(OUTPUT_PATH)
-    
-    with open(OUTPUT_PATH, 'a', newline='') as f:
-        writer = csv.writer(f)
-        if not file_exists or f.tell() == 0:
-            writer.writerow(["Latitude", "Longitude", "Datetime", "GHI", "DNI", "DHI"])
-        for r in records:
-            writer.writerow([r["latitude"], r["longitude"], r["datetime"], r["ghi"], r["dni"], r["dhi"]])
-    logger.info(f"📄 CSV: Appended {len(records)} records to {OUTPUT_PATH}")
+            print(f"[❌] CSV write error: {e}")
