@@ -1,14 +1,11 @@
 import os
 import time
-from dotenv import load_dotenv
 from zip_grid import get_zip_latlon_grid
 from nsrdb import get_solar_data
 from solar_db import save_solar_record
 from zip_loader import load_usa_zip_list
 
 # Load environment variables
-load_dotenv()
-
 API_KEY = os.getenv("NSRDB_API_KEY")
 EMAIL = os.getenv("NSRDB_EMAIL")
 YEAR = os.getenv("NSRDB_YEAR", "2024")

@@ -55,13 +55,6 @@ def main():
     print("🔧 SunScore Data Setup Utility")
     print("=" * 40)
     
-    # Load environment variables if available
-    try:
-        from dotenv import load_dotenv
-        load_dotenv()
-    except ImportError:
-        pass
-    
     if check_required_files():
         print("\n✅ All required files found!")
         return True
@@ -88,6 +81,9 @@ def main():
         print("ℹ️  Exiting. Please download required files manually.")
         return False
 
+if __name__ == "__main__":
+    success = main()
+    sys.exit(0 if success else 1)
 if __name__ == "__main__":
     success = main()
     sys.exit(0 if success else 1)

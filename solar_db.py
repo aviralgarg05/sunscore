@@ -3,23 +3,25 @@ import csv
 import uuid
 from datetime import datetime
 from pymongo import MongoClient
-from dotenv import load_dotenv
-
-load_dotenv()
-
-MONGO_URI = os.getenv("MONGO_URI")
 
 def save_solar_record(zip_code, lat, lon, records, year=None, in_docker=False):
     """
     Save solar irradiance records to MongoDB and/or CSV.
     """
 
-    # Optional MongoDB upload
-    if MONGO_URI:
+    # Load MONGODB_URI and DB/COLLECTION names at runtime
+    MONGO_URI = os.getenv("MONGODB_URI")
+    MONGO_DB = os.getenv("MONGODB_DATABASE", "sunscore")
+    MONGO_COLLECTION = os.getenv("MONGODB_COLLECTION", "solar_data")
+    if not MONGO_URI:
+        print(f"[⚠️] No MONGO_URI configured. Skipping MongoDB upload. (MONGO_URI={MONGO_URI})")
+    else:
         try:
+            print(f"[ℹ️] Connecting to MongoDB at {MONGO_URI} ...")
             client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=10000)
-            db = client.sunscore
-            collection = db.solar_data
+            client.admin.command('ping')
+            db = client[MONGO_DB]
+            collection = db[MONGO_COLLECTION]
 
             docs = []
             for rec in records:
@@ -43,8 +45,6 @@ def save_solar_record(zip_code, lat, lon, records, year=None, in_docker=False):
 
         except Exception as e:
             print(f"[❌] MongoDB error: {e}")
-    else:
-        print("[⚠️] No MONGO_URI configured. Skipping MongoDB upload.")
 
     # Save to CSV outside Docker
     if not in_docker:
@@ -81,3 +81,7 @@ def save_solar_record(zip_code, lat, lon, records, year=None, in_docker=False):
 
         except Exception as e:
             print(f"[❌] CSV write error: {e}")
+
+if __name__ == "__main__":
+    from dotenv import load_dotenv
+    load_dotenv()

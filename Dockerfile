@@ -15,7 +15,6 @@ RUN useradd -m -u 1000 appuser
 # Copy requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
 # Copy source files
 COPY *.py ./
 COPY README.md ./
@@ -34,5 +33,5 @@ USER appuser
 ENV PYTHONUNBUFFERED=1
 ENV ZIP_DATA_FILE=uszips.csv
 ENV RUN_ENV=docker
-
+ENV DOCKER_CONTAINER=true
 CMD ["python", "main.py"]
