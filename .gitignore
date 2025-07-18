@@ -41,6 +41,9 @@ sunscore_failures.log
 solar_data_all_zips_*.csv
 *.log
 *.csv
+shapefiles/*.shp
+shapefiles/*.xml
+
 # IDE files
 .vscode/
 .idea/
